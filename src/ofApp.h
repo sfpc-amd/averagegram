@@ -4,7 +4,6 @@
 #include "ofxInstagram.h"
 #include "ofxJSON.h"
 #include "ofxThreadedImageLoader.h"
-//#include "imageAverager.h"
 
 class ofApp : public ofBaseApp{
 
@@ -13,6 +12,8 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
         void exit();
+    
+        bool imagesAllocated(deque<ofImage>& images);
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -27,8 +28,14 @@ class ofApp : public ofBaseApp{
     
 //        imageAverager averager;
     
+    
+        float imageHeight;
+        float imageWidth;
+        int imageCount;
+        bool bShowScrubber;
         bool bNewData;
         bool bShowGui;
+        bool bImagesAlloc;
         ofxInstagram instagram;
         ofxThreadedImageLoader  getImages;
         deque<ofImage> images;

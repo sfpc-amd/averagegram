@@ -4,71 +4,78 @@
 void ofApp::setup(){
     instagram.setup("1700247.32b0b80.919c867a6b794dde8400a32d87339ba5","self");
     instagram.setCertFileLocation(ofToDataPath("ca-bundle.crt",false));
-//    instagram.getUserRecentMedia("self");
 
+    imageHeight = 640;
+    imageWidth = 640;
+    imageCount = 20;
 
     bool bNewData = false;
     bool bShowGui = false;
+    bool bImagesAlloc = false;
 
-    avgImage.allocate(640, 640, OF_IMAGE_COLOR);
+    avgImage.allocate(imageWidth, imageHeight, OF_IMAGE_COLOR);
     avgImage.setColor(ofColor(0));
     avgImage.update();
-
-//    averager.startThread(true, true);
 
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    if (!images.empty() && bNewData) {
-//        for (int i = 0; i < images.size(); i++) {
-//            ofSetColor(255, 255, 255);
-//            if (images[i].isAllocated()) {
-//                if(i <= 3) {
-//                    images[i].draw(5+(i*255), 5, 250,250);
-//                }
-//                else if(i >= 4 && i <= 7) {
-//                    images[i].draw(5-(4*255)+(i*255), 5+255, 250,250);
-//                }
-//                else if(i >= 8 && i <= 11) {
-//                    images[i].draw(5-(8*255)+(i*255), 5+2*255, 250,250);
-//                }
-//            }
-//        }
 
-        unsigned char * pixels = avgImage.getPixels();
-        for(int i = 0; i < 640*640*3; i++) {
-            int avg = 0;
-            for(int j=0; j < images.size(); j++) {
-                if(images[j].isAllocated()) {
-                    cout << "IMAGE " << ofToString(j) << " ALLOCATED" << endl;
-                    avg += images[j].getPixels()[i];
-//                    pixels[i] = images[j].getPixels()[i];
-                } else {
-                    cout << "IMAGE " << ofToString(j) << " NOT ALLOCATED" << endl;
-                }
-            }
-            
-            avg = avg / images.size();
-            pixels[i] = avg;
+    // only update when there is new data
+    if(bNewData) {
+
+        // ignore if images are already allocated
+        if(!bImagesAlloc) {
+            // do the check
+            bImagesAlloc = imagesAllocated(images);
         }
-        
-//        averager.lock();
-//            avgImage = averager.getAverageImage();
-//        averager.unlock();
-//
-        avgImage.update();
+
+        // if allocated, go ahead
+        if (bImagesAlloc) {
+            cout << "Go!" << endl;
+            
+            // get the pixels from our source image
+            unsigned char * pixels = avgImage.getPixels();
+            // get the number of pixels in our source image
+            int nPix = imageWidth*imageHeight*3;
+            // store our averaged pixel values
+            int avg = 0;
+
+            for(int i = 0; i < nPix; i++) {
+                avg = 0;
+                
+                for(int j=0; j < images.size(); j++) {
+                
+                    avg += images[j].getPixels()[i];
+                }
+                
+                avg = floor(avg / images.size());
+                pixels[i] = char(avg);
+            }
+
+            avgImage.update();
+            bNewData = false;
+         }
      }
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofBackground(0);
-    instagram.drawJSON(10);
+//    instagram.drawJSON(10);
 
     ofSetColor(255, 255, 255);
-    avgImage.draw(0, 0);
-
+    
+    
+    if(bImagesAlloc && bShowScrubber) {
+        int i = floor(ofMap(mouseX, ofGetWidth(), 0, 0, images.size()-1, true));
+        cout << ofToString(i) << endl;
+        images[i].draw(0, 0);
+        ofLine(mouseX, 0, mouseX, ofGetHeight());
+    } else {
+        avgImage.draw(0, 0);
+    }
 
     if(bShowGui) {
         stringstream info;
@@ -84,7 +91,32 @@ void ofApp::draw(){
 void ofApp::exit()
 {
     getImages.stopThread();
-//    averager.stopThread();
+}
+
+bool ofApp::imagesAllocated(deque<ofImage>& images){
+    bool alloc = false;
+    
+    if(!images.empty()) {
+        alloc = true;
+        // counting down -- just a guess but maybe
+        // tha later ones in the array will load last?
+        for(int i=images.size()-1; i>=0; i--) {
+            // if we find an image that isn't allocated,
+            // set to false and break out of the loop
+            if(!images[i].isAllocated()) {
+                alloc = false;
+                break;
+            }
+            
+            if(images[i].getWidth() < imageWidth || images[i].getHeight() < imageHeight) {
+                images[i].resize(imageWidth, imageHeight);
+            }
+        }
+    }
+    
+    cout << "Images Allocated? " << ofToString(alloc) << endl;
+    
+    return alloc;
 }
 
 //--------------------------------------------------------------
@@ -92,46 +124,82 @@ void ofApp::keyPressed(int key){
     switch (key) {
         case 'r':
             images.clear();
-            images.resize(5);
             // @richkidsofinstagram 217946015
             // @dronestagram 241657822
-            instagram.getUserRecentMedia("self", 5);
+            instagram.getUserRecentMedia("self", imageCount);
             if (!instagram.getImageURL().empty())
             {
+                images.resize(instagram.getImageURL().size());
                 bNewData = true;
                 for ( int i = 0; i < instagram.getImageURL().size(); i++)
                 {
                     getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
                 }
-//                averager.setImages(images);
             }
             break;
         case 'l':
             images.clear();
-            images.resize(12);
-            instagram.getUserLikedMedia(12);
+            instagram.getUserLikedMedia(imageCount);
             if (!instagram.getImageURL().empty())
             {
+                images.resize(instagram.getImageURL().size());
                 bNewData = true;
                 for ( int i = 0; i < instagram.getImageURL().size(); i++)
                 {
                     getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
                 }
-//                averager.setImages(images);
             }
             break;
         case 'f':
             images.clear();
-            images.resize(12);
-            instagram.getUserFeed(12);
+            instagram.getUserFeed(imageCount);
             if (!instagram.getImageURL().empty())
             {
+                images.resize(instagram.getImageURL().size());
                 bNewData = true;
                 for ( int i = 0; i < instagram.getImageURL().size(); i++)
                 {
                     getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
                 }
-//                averager.setImages(images);
+            }
+            break;
+        case 's':
+            images.clear();
+            instagram.getListOfTaggedObjectsNormal("selfie", imageCount);
+            if (!instagram.getImageURL().empty())
+            {
+                images.resize(instagram.getImageURL().size());
+                bNewData = true;
+                for ( int i = 0; i < instagram.getImageURL().size(); i++)
+                {
+                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
+                }
+            }
+            break;
+        case 'p':
+            images.clear();
+            instagram.getPopularMedia();
+            if (!instagram.getImageURL().empty())
+            {
+                images.resize(instagram.getImageURL().size());
+                bNewData = true;
+                for ( int i = 0; i < instagram.getImageURL().size(); i++)
+                {
+                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
+                }
+            }
+            break;
+        case 'g':
+            images.clear();
+            instagram.searchMedia("40.7365685", "-74.0114881");
+            if (!instagram.getImageURL().empty())
+            {
+                images.resize(instagram.getImageURL().size());
+                bNewData = true;
+                for ( int i = 0; i < instagram.getImageURL().size(); i++)
+                {
+                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
+                }
             }
             break;
         case 'c':
@@ -151,7 +219,6 @@ void ofApp::keyReleased(int key){
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-
 }
 
 //--------------------------------------------------------------
@@ -161,12 +228,12 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+    bShowScrubber = true;
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+    bShowScrubber = false;
 }
 
 //--------------------------------------------------------------
