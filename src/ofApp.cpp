@@ -9,10 +9,15 @@ void ofApp::setup(){
     imageWidth = 640;
     imageCount = 20;
 
-    bool bNewData = false;
-    bool bShowGui = false;
-    bool bImagesAlloc = false;
+    bNewData = false;
+    bShowGui = true;
+    bImagesAlloc = false;
+    
+    // @richkidsofinstagram 217946015
+    // @dronestagram 241657822
+    userId = "self";
 
+    // allocate empty black image
     avgImage.allocate(imageWidth, imageHeight, OF_IMAGE_COLOR);
     avgImage.setColor(ofColor(0));
     avgImage.update();
@@ -33,7 +38,7 @@ void ofApp::update(){
 
         // if allocated, go ahead
         if (bImagesAlloc) {
-            cout << "Go!" << endl;
+            bShowGui = false;
             
             // get the pixels from our source image
             unsigned char * pixels = avgImage.getPixels();
@@ -63,11 +68,8 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofBackground(0);
-//    instagram.drawJSON(10);
+    ofSetColor(255);
 
-    ofSetColor(255, 255, 255);
-    
-    
     if(bImagesAlloc && bShowScrubber) {
         int i = floor(ofMap(mouseX, ofGetWidth(), 0, 0, images.size()-1, true));
         cout << ofToString(i) << endl;
@@ -79,12 +81,30 @@ void ofApp::draw(){
 
     if(bShowGui) {
         stringstream info;
+        info << "INSTA-AVERAGE" << endl;
+        info << "=============" << endl;
+        info << endl;
+        info << "Press 'h' to show/hide this message." << endl;
         info << "Press 'c' to clear the Images" << endl;
+        info << endl;
+        info << "Press 's' to get #selfie images" << endl;
+        info << "Press 'p' to get popular images" << endl;
+        info << "Press 'g' to get local images" << endl;
+        info << "Press 'n' to get #nsfw images" << endl;
+
+        info << endl;
+        info << "For current user:" << endl;
         info << "Press 'r' to Get Recent Images" << endl;
         info << "Press 'l' to Get Liked Media" << endl;
         info << "Press 'f' to Get Your User Feed" << endl;
         
-        ofDrawBitmapStringHighlight(info.str(), 5,ofGetHeight()-50);
+        info << "Press '1' to set user to @andyinabox" << endl;
+        info << "Press '2' to set user to @dronestagram" << endl;
+        info << "Press '3' to set user to @richkidsofinstagram" << endl;
+        info << "Press '4' to set user to @sfpc_school" << endl;
+        info << "Press '5' to set user to @gridpaper" << endl;
+       
+        ofDrawBitmapStringHighlight(info.str(), ofGetWidth()/4, ofGetHeight()/3);
     }
 }
 
@@ -114,9 +134,21 @@ bool ofApp::imagesAllocated(deque<ofImage>& images){
         }
     }
     
-    cout << "Images Allocated? " << ofToString(alloc) << endl;
-    
     return alloc;
+}
+
+
+void ofApp::updateResults() {
+    if (!instagram.getImageURL().empty())
+    {
+        images.resize(instagram.getImageURL().size());
+        bNewData = true;
+        bImagesAlloc = false;
+        for ( int i = 0; i < instagram.getImageURL().size(); i++)
+        {
+            getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
+        }
+    }
 }
 
 //--------------------------------------------------------------
@@ -124,89 +156,64 @@ void ofApp::keyPressed(int key){
     switch (key) {
         case 'r':
             images.clear();
-            // @richkidsofinstagram 217946015
-            // @dronestagram 241657822
-            instagram.getUserRecentMedia("self", imageCount);
-            if (!instagram.getImageURL().empty())
-            {
-                images.resize(instagram.getImageURL().size());
-                bNewData = true;
-                for ( int i = 0; i < instagram.getImageURL().size(); i++)
-                {
-                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
-                }
-            }
+            instagram.getUserRecentMedia(userId, imageCount);
+            updateResults();
             break;
         case 'l':
             images.clear();
-            instagram.getUserLikedMedia(imageCount);
-            if (!instagram.getImageURL().empty())
-            {
-                images.resize(instagram.getImageURL().size());
-                bNewData = true;
-                for ( int i = 0; i < instagram.getImageURL().size(); i++)
-                {
-                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
-                }
-            }
+            instagram.getUserLikedMedia(userId, imageCount);
+            updateResults();
             break;
         case 'f':
             images.clear();
-            instagram.getUserFeed(imageCount);
-            if (!instagram.getImageURL().empty())
-            {
-                images.resize(instagram.getImageURL().size());
-                bNewData = true;
-                for ( int i = 0; i < instagram.getImageURL().size(); i++)
-                {
-                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
-                }
-            }
+            instagram.getUserFeed(userId, imageCount);
+            updateResults();
             break;
         case 's':
             images.clear();
             instagram.getListOfTaggedObjectsNormal("selfie", imageCount);
-            if (!instagram.getImageURL().empty())
-            {
-                images.resize(instagram.getImageURL().size());
-                bNewData = true;
-                for ( int i = 0; i < instagram.getImageURL().size(); i++)
-                {
-                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
-                }
-            }
+            updateResults();
+            break;
+        case 'n':
+            images.clear();
+            instagram.getListOfTaggedObjectsNormal("nsfw", imageCount);
+            updateResults();
             break;
         case 'p':
             images.clear();
             instagram.getPopularMedia();
-            if (!instagram.getImageURL().empty())
-            {
-                images.resize(instagram.getImageURL().size());
-                bNewData = true;
-                for ( int i = 0; i < instagram.getImageURL().size(); i++)
-                {
-                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
-                }
-            }
+            updateResults();
             break;
         case 'g':
             images.clear();
             instagram.searchMedia("40.7365685", "-74.0114881");
-            if (!instagram.getImageURL().empty())
-            {
-                images.resize(instagram.getImageURL().size());
-                bNewData = true;
-                for ( int i = 0; i < instagram.getImageURL().size(); i++)
-                {
-                    getImages.loadFromURL(images[i], instagram.getImageURL()[i]);
-                }
-            }
+            updateResults();
             break;
         case 'c':
             images.clear();
+            bNewData = true;
+            bImagesAlloc = false;
+            break;
+    // @richkidsofinstagram 217946015
+    // @dronestagram 241657822
+        case '1':
+            userId = "self";
+            break;
+        case '2':
+            userId = "241657822";
+            break;
+        case '3':
+            userId = "217946015";
+            break;
+        case '4':
+            userId = "1766757231";
+            break;
+        case '5':
+            userId = "13826540";
             break;
         case 'h':
             bShowGui = !bShowGui;
+            break;
         default:
             break;
     }

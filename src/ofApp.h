@@ -14,6 +14,7 @@ class ofApp : public ofBaseApp{
         void exit();
     
         bool imagesAllocated(deque<ofImage>& images);
+        void updateResults();
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -24,9 +25,6 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-        
-    
-//        imageAverager averager;
     
     
         float imageHeight;
@@ -36,10 +34,10 @@ class ofApp : public ofBaseApp{
         bool bNewData;
         bool bShowGui;
         bool bImagesAlloc;
+        string userId;
         ofxInstagram instagram;
         ofxThreadedImageLoader  getImages;
         deque<ofImage> images;
         ofImage avgImage;
-//        unsigned char * pixels;
     
 };
