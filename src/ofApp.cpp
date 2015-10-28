@@ -81,7 +81,7 @@ void ofApp::draw(){
 
     if(bShowGui) {
         stringstream info;
-        info << "INSTA-AVERAGE" << endl;
+        info << "AVERAGEGRAM" << endl;
         info << "=============" << endl;
         info << endl;
         info << "Press 'h' to show/hide this message." << endl;
