@@ -1,1 +1,4 @@
-1700247.32b0b80.919c867a6b794dde8400a32d87339ba5
+Insta-average
+==============
+
+Averaging images from the Instagram API.
