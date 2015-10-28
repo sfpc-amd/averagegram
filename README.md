@@ -22,10 +22,10 @@ These are early examples using samples with 20 images.
 ![Popular Images](examples/images/user_dronestagram.png)
 
 
-### User: [@dronestagram](https://instagram.com/richkidsofinstagram/)
+### User: [@richkidsofinstagram](https://instagram.com/richkidsofinstagram/)
 ![Popular Images](examples/images/user_richkidsofinstagram.png)
 
 
-### User: [@dronestagram](https://instagram.com/gridpaper/)
+### User: [@gridpaper](https://instagram.com/gridpaper/)
 ![Popular Images](examples/images/user_gridpaper
 .png)
