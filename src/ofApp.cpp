@@ -90,7 +90,6 @@ void ofApp::draw(){
         info << "Press 's' to get #selfie images" << endl;
         info << "Press 'p' to get popular images" << endl;
         info << "Press 'g' to get local images" << endl;
-        info << "Press 'n' to get #nsfw images" << endl;
 
         info << endl;
         info << "For current user:" << endl;
@@ -172,11 +171,6 @@ void ofApp::keyPressed(int key){
         case 's':
             images.clear();
             instagram.getListOfTaggedObjectsNormal("selfie", imageCount);
-            updateResults();
-            break;
-        case 'n':
-            images.clear();
-            instagram.getListOfTaggedObjectsNormal("nsfw", imageCount);
             updateResults();
             break;
         case 'p':
